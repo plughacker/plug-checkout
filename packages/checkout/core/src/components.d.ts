@@ -7,16 +7,18 @@
 import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
 import { PlugCheckoutDialog, PlugCheckoutPaymentMethods, PlugCheckoutTransaction } from "./components/plug-checkout/plug-checkout.types";
 import { PaymentMethods, PlugPaymentsChargeError, PlugPaymentsChargeSuccess } from "./components/plug-payments/plug-payments.types";
+import { PaymentSessionData } from "./services/payment-session/payment-session.types";
 export namespace Components {
     interface PlugCheckout {
-        "clientId": string;
+        "clientId"?: string;
         "dialogConfig": PlugCheckoutDialog;
         "idempotencyKey": string;
-        "merchantId": string;
-        "paymentMethods": PlugCheckoutPaymentMethods;
-        "publicKey": string;
+        "merchantId"?: string;
+        "paymentMethods"?: PlugCheckoutPaymentMethods;
+        "paymentSessionKey"?: string;
+        "publicKey"?: string;
         "sandbox": boolean;
-        "transactionConfig": PlugCheckoutTransaction;
+        "transactionConfig"?: PlugCheckoutTransaction;
     }
     interface PlugPayments {
         "paymentMethods": PaymentMethods;
@@ -94,10 +96,14 @@ declare namespace LocalJSX {
         "onPaymentFailed"?: (event: CustomEvent<{
     error: PlugPaymentsChargeError
   }>) => void;
+        "onPaymentSessionFetch"?: (event: CustomEvent<{
+    paymentSession: PaymentSessionData
+  }>) => void;
         "onPaymentSuccess"?: (event: CustomEvent<{
     data: PlugPaymentsChargeSuccess
   }>) => void;
         "paymentMethods"?: PlugCheckoutPaymentMethods;
+        "paymentSessionKey"?: string;
         "publicKey"?: string;
         "sandbox"?: boolean;
         "transactionConfig"?: PlugCheckoutTransaction;

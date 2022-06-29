@@ -24,6 +24,7 @@ export declare interface PlugCheckout extends Components.PlugCheckout {}
     'sandbox',
     'transactionConfig',
     'idempotencyKey',
+    'paymentSessionKey',
   ],
 })
 @Component({
@@ -39,18 +40,21 @@ export declare interface PlugCheckout extends Components.PlugCheckout {}
     'sandbox',
     'transactionConfig',
     'idempotencyKey',
+    'paymentSessionKey',
   ],
-  outputs: ['paymentSuccess', 'paymentFailed'],
+  outputs: ['paymentSuccess', 'paymentFailed', 'paymentSessionFetch'],
 })
 export class PlugCheckout {
   /**  */
   paymentSuccess!: EventEmitter<CustomEvent<{ data: unknown }>>
   /**  */
   paymentFailed!: EventEmitter<CustomEvent<{ error: unknown }>>
+  /**  */
+  paymentSessionFetch!: EventEmitter<CustomEvent<{ error: unknown }>>
   protected el: HTMLElement
   constructor(c: ChangeDetectorRef, r: ElementRef, protected z: NgZone) {
     c.detach()
     this.el = r.nativeElement
-    proxyOutputs(this, this.el, ['paymentSuccess', 'paymentFailed'])
+    proxyOutputs(this, this.el, ['paymentSuccess', 'paymentFailed', 'paymentSessionFetch'])
   }
 }

@@ -21,30 +21,32 @@ import {
 import { PlugCheckoutFullIdentificationFormValues } from './partials/plug-checkout-full-identification/plug-checkout-full-identification.types'
 
 import { formatCustomer } from './plug-checkout-full.utils'
+import { PaymentSessionData } from '@plug-checkout/core/dist/types/services/payment-session/payment-session.types'
 
 @Component({
   tag: 'plug-checkout-full',
   styleUrl: 'plug-checkout-full.scss',
 })
 export class PlugCheckoutFull implements ComponentInterface {
-  @Prop() clientId: string
-  @Prop() publicKey: string
-  @Prop() merchantId: string
+  @Prop() clientId?: string
+  @Prop() publicKey?: string
+  @Prop() merchantId?: string
   @Prop() idempotencyKey: string
+  @Prop() paymentSessionKey?: string
   @Prop() sandbox = false
-  @Prop() paymentMethods: PlugCheckoutFullPaymentMethods = {
+  @Prop() paymentMethods?: PlugCheckoutFullPaymentMethods = {
     pix: undefined,
     credit: undefined,
     boleto: undefined,
   }
-  @Prop() pageConfig: PlugCheckoutFullPage = {
+  @Prop() pageConfig?: PlugCheckoutFullPage = {
     brandUrl: '',
     footerDescription: '',
     backRoute: '',
     delivery: 0,
     products: [],
   }
-  @Prop() transactionConfig: PlugCheckoutFullTransaction = {
+  @Prop() transactionConfig?: PlugCheckoutFullTransaction = {
     statementDescriptor: '',
     amount: 0,
     description: '',
@@ -84,6 +86,10 @@ export class PlugCheckoutFull implements ComponentInterface {
     country: '',
   }
 
+  @State() isLoading = true
+
+  @State() paymentSessionData?: PaymentSessionData
+
   private handleChangeSection = (section: string) => {
     this.currentSection = section
   }
@@ -101,7 +107,41 @@ export class PlugCheckoutFull implements ComponentInterface {
     }
   }
 
+  private handleSetPaymentSessionData = (
+    paymentSessionData: PaymentSessionData,
+  ) => {
+    this.paymentSessionData = paymentSessionData
+    this.isLoading = false
+  }
+
+  private handleGetAmount = () => {
+    if (this.paymentSessionData) {
+      return this.paymentSessionData.amount
+    }
+
+    return this.transactionConfig.amount
+  }
+
+  private handleGetProducts = () => {
+    if (this.paymentSessionData) {
+      return this.paymentSessionData.items.map((item) => {
+        return {
+          name: item.name,
+          amount: item.unitPrice,
+          quantity: item.quantity,
+          description: item.description,
+        }
+      })
+    }
+
+    return this.pageConfig.products
+  }
+
   componentWillLoad() {
+    if (!this.paymentSessionKey) {
+      this.isLoading = false
+    }
+
     if (this.transactionConfig.customerId) {
       this.currentSection = 'payments'
     }
@@ -119,15 +159,17 @@ export class PlugCheckoutFull implements ComponentInterface {
         <plug-checkout-full-header
           brand={this.pageConfig.brandUrl}
           backRoute={this.pageConfig.backRoute}
+          isLoading={this.isLoading}
         />
 
         <plug-checkout-full-content>
           <checkout-order-summary
             slot="order"
             label="Pedido"
-            amount={this.transactionConfig.amount}
-            products={this.pageConfig.products}
+            amount={this.handleGetAmount()}
+            products={this.handleGetProducts()}
             delivery={this.pageConfig.delivery}
+            isLoading={this.isLoading}
           />
 
           <div slot="informations" class="plug-checkout-full__informations">
@@ -170,6 +212,7 @@ export class PlugCheckoutFull implements ComponentInterface {
                 clientId={this.clientId}
                 merchantId={this.merchantId}
                 idempotencyKey={this.idempotencyKey}
+                paymentSessionKey={this.paymentSessionKey}
                 sandbox={this.sandbox}
                 transactionConfig={{
                   ...this.transactionConfig,
@@ -182,6 +225,9 @@ export class PlugCheckoutFull implements ComponentInterface {
                 }
                 onPaymentFailed={({ detail: { error } }) =>
                   this.transactionFailed.emit({ error })
+                }
+                onPaymentSessionFetch={({ detail: { paymentSession } }) =>
+                  this.handleSetPaymentSessionData(paymentSession)
                 }
               />
             </checkout-accordion>

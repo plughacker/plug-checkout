@@ -11,8 +11,10 @@ import {
   PlugPaymentsChargeError,
   PlugPaymentsChargeSuccess,
 } from '../plug-payments/plug-payments.types'
+import { PaymentSession } from '../../services/payment-session/payment-session'
 
 export class PlugCheckoutService {
+  readonly paymentSession: PaymentSession
   readonly onPaymentSuccess: (
     data: PlugPaymentsChargeSuccess,
   ) => CustomEvent<{ data: PlugPaymentsChargeSuccess }>
@@ -21,6 +23,7 @@ export class PlugCheckoutService {
   ) => CustomEvent<{ error: PlugPaymentsChargeError }>
 
   constructor({ onPaymentSuccess, onPaymentFailed }) {
+    this.paymentSession = new PaymentSession()
     this.onPaymentSuccess = onPaymentSuccess
     this.onPaymentFailed = onPaymentFailed
   }
@@ -94,6 +97,23 @@ export class PlugCheckoutService {
       ...currenInitialDialogConfigs,
       ...dialogConfigs,
     }
+  }
+
+  public async getPaymentSession() {
+    if (!settings.paymentSessionKey) {
+      return
+    }
+
+    await new Promise(f => setTimeout(f, 3000));
+
+    const paymentSession = await this.paymentSession.find(
+      settings.paymentSessionKey,
+    )
+
+    settings.transactionConfig = paymentSession.transactionConfig
+    settings.paymentMethods = paymentSession.checkoutPaymentMethods
+
+    return paymentSession
   }
 
   public async pay() {

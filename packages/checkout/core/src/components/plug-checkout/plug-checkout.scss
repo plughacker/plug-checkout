@@ -24,3 +24,11 @@
     height: 30px;
   }
 }
+
+.plug-checkout__loaders {
+  display: flex;
+  flex-direction: column;
+  gap: 52px;
+  padding-top: var(--plug-checkout-spacing-sm);
+  padding-bottom: var(--plug-checkout-spacing-sm);
+}
